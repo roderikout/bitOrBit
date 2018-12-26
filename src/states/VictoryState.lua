@@ -8,7 +8,7 @@
     cogden@cs50.harvard.edu
 
     Represents the state that the game is in when we've just completed a level.
-    Very similar to the ServeState, except here we increment the level 
+    Very similar to the ServeState, except here we increment the level.
 ]]
 
 VictoryState = Class{__includes = BaseState}

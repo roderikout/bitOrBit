@@ -1,6 +1,6 @@
 --[[Rehaciendo el main para adaptarlo a nuevos
 aprendizajes, todavia no se muy bien como lo 
-voy a hacer
+voy a hacer...
 ]]--
 
 require 'src/Dependencies'

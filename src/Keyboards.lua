@@ -1,4 +1,7 @@
---Funciones de teclado --[[Hay unas funciones de teclado que no están bien, las que se presionan seguido]]
+--[[Funciones de teclado --[[Hay unas funciones de teclado que no están bien, 
+las que se presionan seguido.]]--
+
+
 function love.keypressed(key)
   --Teclas de control de juego
   if game.level.levelNumber > 0 then

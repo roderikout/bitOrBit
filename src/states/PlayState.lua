@@ -11,7 +11,7 @@
     player should control the paddle, with the ball actively bouncing between
     the bricks, walls, and the paddle. If the ball goes below the paddle, then
     the player should lose one point of health and be taken either to the Game
-    Over screen if at 0 health or the Serve screen otherwise.
+    Over screen if at 0 health or the Serve screen otherwise
 ]]
 
 PlayState = Class{__includes = BaseState}

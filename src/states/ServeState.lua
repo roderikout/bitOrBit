@@ -11,7 +11,7 @@
     basically just moving the paddle left and right with the ball until we
     press Enter, though everything in the actual game now should render in
     preparation for the serve, including our current health and score, as
-    well as the level we're on.
+    well as the level we're on
 ]]
 
 ServeState = Class{__includes = BaseState}

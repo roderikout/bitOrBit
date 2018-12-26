@@ -12,7 +12,7 @@
     State have a set of four "interface" methods that it can reliably call,
     so by inheriting from this base state, our State classes will all have
     at least empty versions of these methods even if we don't define them
-    ourselves in the actual classes.
+    ourselves in the actual classes
 ]]
 
 BaseState = Class{}

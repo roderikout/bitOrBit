@@ -1,7 +1,7 @@
 --[[ Dependencias de clases y de otros 
 archivos lua]]--
 
---Object = require 'classic'
+--Object = require 'classic'.
 
 -- https://github.com/vrld/hump/blob/master/class.lua
 Class = require 'lib/class'

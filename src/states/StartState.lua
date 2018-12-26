@@ -9,7 +9,7 @@
 
     Represents the state the game is in when we've just started; should
     simply display "Breakout" in large text, as well as a message to press
-    Enter to begin.
+    Enter to begin
 ]]
 
 -- the "__includes" bit here means we're going to inherit all of the methods

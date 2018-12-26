@@ -5,5 +5,5 @@ function love.conf(t)
   t.version = "0.10.2"						-- The LÖVE version this game was made for (string)
   t.console = false						-- Attach a console (boolean, Windows only)
   t.window.width = 1200					-- The window width (number)
-  t.window.height = 800					-- The window height (number)
+  t.window.height = 800					-- The window height .(number)
 end

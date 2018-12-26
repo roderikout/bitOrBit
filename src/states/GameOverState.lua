@@ -9,7 +9,7 @@
 
     The state in which we've lost all of our health and get our score displayed to us. Should
     transition to the EnterHighScore state if we exceeded one of our stored high scores, else back
-    to the StartState.
+    to the StartState
 ]]
 
 GameOverState = Class{__includes = BaseState}
