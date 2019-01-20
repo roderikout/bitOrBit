@@ -1,15 +1,15 @@
 --[[
-    GD50
-    Breakout Remake
+    BitOrBit v.1.1.5
 
     -- StartState Class --
 
-    Author: Colton Ogden
-    cogden@cs50.harvard.edu
+    Author: Rodrigo Garcia
+    roderikout@gmail.com
+
+    Original by: Colton Ogden, cogden@cs50.harvard.edu
 
     Represents the state the game is in when we've just started; should
-    simply display "Breakout" in large text, as well as a message to press
-    Enter to begin
+    simply display Bit Or Bit
 ]]
 
 -- the "__includes" bit here means we're going to inherit all of the methods
@@ -50,8 +50,26 @@ function StartState:init()
     self.instructionsOn = false
 
     --music
+    gSounds['musicIntro']:stop()
+    gSounds['musicGamePlay']:stop()
     gSounds['musicIntro']:play()
     gSounds['musicIntro']:setLooping(true)
+
+    --levelInit
+    self.levelInit = 0
+    self.lastLevel = 1
+    self.planet = Planet(0, 0, 20, 300000, 380)
+    self.probesByLevelMaker = LevelMaker.createLevel(self.levelInit)[1]
+    self.orbitsNeededToWin = {}
+    for i = 1, self.probesByLevelMaker do
+      table.insert(self.orbitsNeededToWin, false)
+    end
+    self.colorZones = ColorZones(self.planet, self.probesByLevelMaker, self.orbitsNeededToWin)
+    self.firstLevel = true
+
+    --camera
+    cameraMain:lookAt(love.graphics.getWidth()/2,love.graphics.getHeight()/2)
+    --cameraMain:zoom(2)
 end
 
 function StartState:update(dt)
@@ -59,23 +77,23 @@ function StartState:update(dt)
     if love.keyboard.wasPressed('i') then
         gSounds['select']:play()
         self.instructionsOn = not self.instructionsOn
-    end
-
-    -- confirm whichever option we have selected to change screens
-    if love.keyboard.wasPressed('space') then
+    elseif love.keyboard.wasPressed('space') then -- confirm whichever option we have selected to change screens
         gSounds['select']:play()
         gStateMachine:change('serve', {
-            health = 3,
-            --score = 0,
-            level = 1
+            levelText = 'Launching satellites',
+            level = self.levelInit,
+            lastLevel = self.lastLevel,
+            planet = self.planet,
+            probesByLevelMaker = self.probesByLevelMaker,
+            orbitsNeededToWin = self.orbitsNeededToWin,
+            colorZones = self.colorZones,
+            firstLevel = self.firstLevel
         })
-    end
-
-    -- we no longer have this globally, so include here
-    if love.keyboard.wasPressed('escape') then
+    elseif love.keyboard.wasPressed('escape') then -- we no longer have this globally, so include here
         love.event.quit()
     end
 
+    -- para hacer crecer y decrecer las letras de BitOrBit
     if self.b =="up" then
         self.a = self.a + (10 * dt)
         if self.a > 7 then
@@ -91,11 +109,16 @@ function StartState:update(dt)
 end
 
 function StartState:render()
-    self:drawStartLogo()
-    self:drawStartText()
+    cameraMain:draw(
+        function()
+            self:drawStartLogo()
+            self:drawStartText()
+        end
+    )
 end
 
 function StartState:drawStartLogo()
+    --parsea la tabla map, si es 1 dibuja un cuadro, si es 0 no
     for y=1, #self.map do
         for x=1, #self.map[y] do
             if self.map[y][x] == 1 then
@@ -106,7 +129,7 @@ function StartState:drawStartLogo()
     end
 end
 
-function StartState:drawStartText()
+function StartState:drawStartText()  --tratar de tomar los textos del archivo textos
     
     if not self.instructionsOn then
         love.graphics.setFont(gFonts['medium'])

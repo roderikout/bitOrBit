@@ -1,17 +1,15 @@
 --[[
-    GD50
-    Breakout Remake
+    BitOrBit v.1.1.5
 
     -- PlayState Class --
 
-    Author: Colton Ogden
-    cogden@cs50.harvard.edu
+    Author: Rodrigo Garcia
+    roderikout@gmail.com
 
+    Original by: Colton Ogden, cogden@cs50.harvard.edu
+    
     Represents the state of the game in which we are actively playing;
-    player should control the paddle, with the ball actively bouncing between
-    the bricks, walls, and the paddle. If the ball goes below the paddle, then
-    the player should lose one point of health and be taken either to the Game
-    Over screen if at 0 health or the Serve screen otherwise
+  
 ]]
 
 PlayState = Class{__includes = BaseState}
@@ -21,283 +19,259 @@ PlayState = Class{__includes = BaseState}
     states as we go from playing to serving.
 ]]
 function PlayState:enter(params)
-    self.paddle = params.paddle
-    self.bricks = params.bricks
-    self.health = params.health
-    self.score = params.score
-    self.highScores = params.highScores
-    self.ball = params.ball
+    
     self.level = params.level
+    self.lastLevel = params.lastLevel
+    self.firstLevel = params.firstLevel
+    self.planet = params.planet
+    self.probesByLevelMaker = params.probesByLevelMaker
+    self.orbitsNeededToWin = params.orbitsNeededToWin
+    self.colorZones = params.colorZones
 
-    self.recoverPoints = params.recoverPoints
+    --launching probes variables
+    self.probeLanzar = true
+    self.probesOrbiting = {}
+    self.launchInterval = 0.5
+    self.timeProbes = 0
 
-    -- give ball random starting velocity
-    self.ball.dx = math.random(-200, 200)
-    self.ball.dy = math.random(-50, -60)
+    --launching probes initial position
+    self.probeX = self.planet.gravityRadius * 2/5 
+    self.probeY = self.planet.gravityRadius * 2/5
 
-    -- timers for whatever (power-ups for example)
-    self.timerPowerUps = 0
+    --launching probes initial speed
+    self.probeSpeedInitialMin = 300
+    self.probeSpeedInitialMax = 400 
 
-    -- Power-Up vars
-    self.powerUpGenerator = PowerUpGenerator()
-    self.isPowerUpTime = false
-    self.scoreNow = 0
-    self.isPowerUpActive = false
+    gameState = 'play'
 
-    --balls vars
-    self.balls = {self.ball}
-    self.maxBalls = 3
+    gSounds['musicGamePlay']:play()
+    gSounds['musicGamePlay']:setLooping(true)
+
+    --camera
+    cameraMain:lookAt(0,0)
+
+    --debugging
+    self.debug = 'Nothing happening'
+
 end
 
 function PlayState:update(dt)
 
-    --power-up timer
-    self.timerPowerUps = self.timerPowerUps + dt
+  --manage pause state
+  if self.paused then
+      if love.keyboard.wasPressed('space') then
+          self.paused = false
+      else
+          return
+      end
+  elseif love.keyboard.wasPressed('space') then
+      self.paused = true
+      return
+  end
 
-    --is time for power-up to spawn?
-    self.isPowerUpTime = self.powerUpGenerator:isTimeForPowerUp(math.floor(self.timerPowerUps))
+  --manage exit and instructions
+  if love.keyboard.wasPressed('escape') then
+      gStateMachine:change('start')
+      probeSelected = 0
+      probes = {}
+      self.probeLanzar = false
+  elseif love.keyboard.wasPressed('i') then
+      self.instructionsOn = not self.instructionsOn
+  end
 
-    --other moments for power-up to spawn
-    if self.score > self.scoreNow and self.score % 175 == 0 and self.timerPowerUps > 10 and not self.isPowerUpActive then
-        self.powerUpGenerator:spawnPowerUp()
-        self.scoreNow = self.score
+  --manage probe selecting
+  if love.keyboard.wasPressed('p') then  -- rotar en seleccion de probes
+    if #probes > 0 then
+      gSounds['pop']:play()
+      probeSelected = probeSelected + 1
+      if probeSelected > #probes then
+        probeSelected = 0
+      end
+      for i, p in ipairs(probes) do
+        p.selected = false
+      end
+      if probeSelected > 0 then
+        probes[probeSelected].selected = true
+      end
     end
-
-    --is power-up colliding with paddle to be active?
-    if self.powerUpGenerator:collides(self.paddle) then
-        self.isPowerUpActive = true
-        for i = 1, self.maxBalls - #self.balls, 1 do
-            local ball = Ball(math.random(7))
-            ball.x = math.random(20, VIRTUAL_WIDTH - 20)
-            ball.y = math.random(20, VIRTUAL_HEIGHT / 2)
-            ball.dx = math.random(-200, 200)
-            ball.dy = math.random(-50, -60) 
-            table.insert(self.balls, ball)
-        end
+  elseif love.keyboard.wasPressed('x') then --remove probe
+    table.remove(probes, probeSelected)
+    if probeSelected > 0 then
+      gSounds['explosion']:play()
     end
+    probeSelected = 0
+  elseif love.keyboard.wasPressed('r') then -- reset all probes
+    probes = {}
+    probeSelected = 0
+    gameState  = "play"
+    gSounds['explosion']:play()
+  elseif love.keyboard.wasPressed('f') then -- follow probe with camera
+    --cameraFollows = not cameraFollows
+  end   
 
-    if self.paused then
-        if love.keyboard.wasPressed('space') then
-            self.paused = false
-            gSounds['pause']:play()
-        else
-            return
-        end
-    elseif love.keyboard.wasPressed('space') then
-        self.paused = true
-        gSounds['pause']:play()
-        return
-    end
+  --update probe launching and movement
+  self:launchProbes(dt)
+  self:checkWin()
+  self:probeMechanics(dt)
+  self:checkOrbitsDone()
+  
 
-    -- update positions based on velocity
-    self.paddle:update(dt)
+  --update ColorZones
+  self.colorZones = ColorZones(self.planet, self.probesByLevelMaker, self.orbitsNeededToWin)
 
-    -- BALLS
-    for k, ball in pairs(self.balls) do
-        ball:update(dt)
-
-        --Nuevo rebote usando tecnica de noooway
-
-        if ball:collides(self.paddle) then
-            --Nuevo rebote con paddle usando tecnica de noooway
-            local ball_collides, shift_ball_x, shift_ball_y, min_shift
-            ball_collides, shift_ball_x, shift_ball_y = ball:collides(self.paddle)
-
-            min_shift = math.min(math.abs(shift_ball_x), math.abs(shift_ball_y))
-
-            if math.abs(shift_ball_x) == min_shift then
-                shift_ball_y = 0
-            else
-                shift_ball_x = 0
-            end
-
-            ball.x = ball.x + shift_ball_x
-            ball.y = ball.y + shift_ball_y
-
-            if shift_ball_x ~= 0 then
-                ball.dx = -ball.dx
-            end
-            if shift_ball_y ~= 0 then
-                ball.dy = -ball.dy
-            end
-            --
-            -- tweak angle of bounce based on where it hits the paddle
-            --
-            -- if we hit the paddle on its left side while moving left...
-            if ball.x < self.paddle.x + (self.paddle.width / 2) and self.paddle.dx < 0 then
-                ball.dx = -50 + -(8 * (self.paddle.x + self.paddle.width / 2 - ball.x))
-            
-            -- else if we hit the paddle on its right side while moving right...
-            elseif ball.x > self.paddle.x + (self.paddle.width / 2) and self.paddle.dx > 0 then
-                ball.dx = 50 + (8 * math.abs(self.paddle.x + self.paddle.width / 2 - ball.x))
-            end
-
-            gSounds['paddle-hit']:play()
-        end
-    
-
-        -- detect collision across all bricks with the ball
-        for k, brick in pairs(self.bricks) do
-
-            -- only check collision if we're in play
-            if brick.inPlay and ball:collides(brick) then
-
-                --add power up at brick position
-                if self.isPowerUpTime and not self.isPowerUpActive then
-                    self.powerUpGenerator:spawnPowerUp(brick.x + brick.width / 2, brick.y + brick.height / 2)
-                end
-
-                -- add to score
-                self.score = self.score + (brick.tier * 200 + brick.color * 25)
-
-                -- trigger the brick's hit function, which removes it from play
-                brick:hit()
-
-                 -- if we have enough points, recover a point of health
-                if self.score > self.recoverPoints then
-                    -- can't go above 3 health
-                    self.health = math.min(3, self.health + 1)
-
-                    -- multiply recover points by 2
-                    self.recoverPoints = math.min(100000, self.recoverPoints * 2)
-
-                    -- play recover sound effect
-                    gSounds['recover']:play()
-                end
-
-                -- go to our victory screen if there are no more bricks left
-                if self:checkVictory() then
-                    gSounds['victory']:play()
-
-                    gStateMachine:change('victory', {
-                        level = self.level,
-                        paddle = self.paddle,
-                        health = self.health,
-                        score = self.score,
-                        highScores = self.highScores,
-                        ball = ball,
-                        recoverPoints = self.recoverPoints
-                    })
-                end
-                --
-                -- collision code for bricks
-                --
-                --Nuevo rebote de ball con brick usando tecnica de noooway
-                local ball_collides, shift_ball_x, shift_ball_y, min_shift
-                ball_collides, shift_ball_x, shift_ball_y = ball:collides(brick)
-
-                min_shift = math.min(math.abs(shift_ball_x), math.abs(shift_ball_y))
-
-                if math.abs(shift_ball_x) == min_shift then
-                    shift_ball_y = 0
-                else
-                    shift_ball_x = 0
-                end
-
-                -- raise ball above paddle in case it goes below it, then reverse dy or the same for x and dx
-                ball.x = ball.x + shift_ball_x
-                ball.y = ball.y + shift_ball_y
-
-                if shift_ball_x ~= 0 then
-                    ball.dx = -ball.dx
-                end
-                if shift_ball_y ~= 0 then
-                    ball.dy = -ball.dy
-                end
-
-                -- slightly scale the y velocity to speed up the game, capping at +- 150
-                if math.abs(ball.dy) < 150 then
-                    ball.dy = ball.dy * 1.02
-                end
-
-                -- only allow colliding with one brick, for corners
-                break
-            end
-        end
-
-        -- if ball goes below bounds, revert to serve state and decrease health
-        if ball.y >= VIRTUAL_HEIGHT then
-            table.remove(self.balls, k)
-            if #self.balls < 1 then
-                self.health = self.health - 1
-                gSounds['hurt']:play()
-            elseif #self.balls == 1 then
-                self.isPowerUpActive = false
-                self.timerPowerUps = 0
-            end
-
-            if self.health == 0 then
-                gStateMachine:change('game-over', {
-                    score = self.score,
-                    highScores = self.highScores,
-                })
-            elseif #self.balls < 1 then
-                gStateMachine:change('serve', {
-                    paddle = self.paddle,
-                    bricks = self.bricks,
-                    health = self.health,
-                    score = self.score,
-                    highScores = self.highScores,
-                    level = self.level,
-                    recoverPoints = self.recoverPoints
-                })
-            end
-        end
-    end
-    -- for rendering particle systems
-    for k, brick in pairs(self.bricks) do
-        brick:update(dt)
-    end
-
-    --rendering Power Ups
-    self.powerUpGenerator:update(dt)
-
-    if love.keyboard.wasPressed('escape') then
-        love.event.quit()
-    end
 end
 
 function PlayState:render()
-    -- render bricks
-    for k, brick in pairs(self.bricks) do
-        brick:render()
+  cameraMain:draw(
+    function()
+      self.colorZones:render()
+      self.planet:render()
+      self:drawTableEntities(probes)
+      if probeSelected > 0 then
+        self:gravityBeam()
+      end
     end
-
-    -- render all particle systems
-    for k, brick in pairs(self.bricks) do
-        brick:renderParticles()
-    end
-
-    self.paddle:render()
-    for k, ball in pairs(self.balls) do
-        ball:render()
-    end
-
-    self.powerUpGenerator:render()
-
-    renderScore(self.score)
-    renderHealth(self.health)
-    renderLevel(self.level)
-    renderHighScore(self.highScores)
-
-    -- pause text, if paused
-    if self.paused then
-        love.graphics.setFont(gFonts['large'])
-        love.graphics.printf("PAUSED", 0, VIRTUAL_HEIGHT / 2 - 16, VIRTUAL_WIDTH, 'center')
-    end
-
-    --Display debuggers
-     displayDebug(15, 'Is pUp active: ', self.isPowerUpActive)
-     --displayDebug(25, 'Timer: ', math.floor(self.timerPowerUps))
-     --displayDebug(30, 'Time4PUp: ', self.powerUpGenerator.timeForPowerUp)
+  ) 
+  printTitle(self.level, self.debug, self.instructionsOn)
 end
 
-function PlayState:checkVictory()
-    for k, brick in pairs(self.bricks) do
-        if brick.inPlay then
-            return false
-        end 
+function PlayState:launchProbes(dt)
+  self.probesOrbiting = {}
+  if #probes == 0 and self.probeLanzar then --probes es Global en Main
+    self.timeProbes = self.timeProbes + dt
+    if self.timeProbes > self.launchInterval then
+      self:manageLaunchProbes(true, dt, 0)
+      self.timeProbes = 0
     end
+  elseif #probes > 0 and #probes < self.probesByLevelMaker and self.probeLanzar then
+    for i, p in ipairs(probes) do
+      self.probesOrbiting[i] = p.number
+    end
+    self.timeProbes = self.timeProbes + dt
+    for i = 1, self.probesByLevelMaker do
+      if self.timeProbes > self.launchInterval then
+        if utils.tableCount(self.probesOrbiting, i) == 0 then
+          self:manageLaunchProbes(false, dt, i)
+        end
+      end
+    end
+  end
+end
 
-    return true
+function PlayState:manageLaunchProbes(first, dt, i)-- maneja la posicion, direccion y velocidad inicial de las probes, first se refiere a si es la primera probe lanzada
+-- por ahora esta este metodo para garantizar probes exitosos pero es muy limitado, solo a 4 variables. speed = 180, 180, 270, 0
+  local modRad = lume.random(50)
+  local uno = {self.probeX, self.probeY, lume.randomchoice({math.rad(300 - modRad), math.rad(270 + modRad)})}
+  local dos = {self.probeX, -self.probeY, lume.randomchoice({math.rad(300 + modRad), math.rad(90 - modRad)})}
+  local tres = {-self.probeX, self.probeY, lume.randomchoice({math.rad(360 - modRad), math.rad(0 + modRad)})}
+  local cuatro = {-self.probeX, -self.probeY, lume.randomchoice({math.rad(100 - modRad), math.rad(90 + modRad)})}
+  local probeData = lume.randomchoice({uno,dos,tres,cuatro})
+
+  gSounds['bwam']:play()
+  local p = #probes + 1
+  local probString = "probe" .. tostring(p)
+  local probStr = Probe(probeData[1], probeData[2], utils.randomInt(self.probeSpeedInitialMin, self.probeSpeedInitialMax), probeData[3])
+  probStr.name = probString
+  probStr.popX = probStr.x
+  probStr.popY = probStr.y
+ 
+
+  if first then
+    probStr.number = p
+    probes[p] = probStr
+    self.timeProbes = self.timeProbes + dt
+  else 
+    probStr.number = i
+    table.insert(probes, i, probStr)
+    self.timeProbes = 0
+  end
+
+end
+
+function PlayState:drawTableEntities(table)  -- dibuja planetas y probes
+  for i, entity in ipairs(table) do
+    entity:render()
+  end
+end
+
+function PlayState:probeMechanics(dt)
+  for i, p in ipairs(probes) do        
+      p:influencedByGravityOf(self.planet)
+      p:checkDestroyProbe(self.planet)
+      p:checkLowHigh(self.planet, self.colorZones)
+      if p.dead then
+        table.remove(probes, i)
+      end
+      p:update(dt)
+  end
+end
+
+function PlayState:gravityBeam()
+  if gameState == "play" then
+    for i, p in ipairs(probes) do
+      --for j, pl in ipairs(planetas) do
+        if p.selected then
+          local anglePlanet =  math.atan2((p.pos.y - self.planet.pos.y), (p.pos.x - self.planet.pos.x))
+          local rDistRel = p.r + utils.randomInt(5, 15)
+          red, green, blue, alpha = ColorZones.colorToLine(i, 150)
+          love.graphics.setColor(red - 50, green - 50, blue + 50, alpha)
+          love.graphics.polygon("fill", self.planet.x, self.planet.y, p.x + (math.sin(anglePlanet) * rDistRel), p.y - (math.cos(anglePlanet) * rDistRel), p.x - (math.sin(anglePlanet) * rDistRel), p.y + (math.cos(anglePlanet) * rDistRel))
+          love.graphics.arc("fill", p.pos.x, p.pos.y, rDistRel, anglePlanet + math.rad(90), anglePlanet - math.rad(90))
+          love.graphics.setColor(0,0,0,255)
+          love.graphics.line(self.planet.x, self.planet.y, p.x + (math.sin(anglePlanet) * rDistRel), p.y - (math.cos(anglePlanet) * rDistRel))
+          love.graphics.line(self.planet.x, self.planet.y, p.x - (math.sin(anglePlanet) * rDistRel), p.y + (math.cos(anglePlanet) * rDistRel))
+          love.graphics.arc("line","open", p.pos.x, p.pos.y, rDistRel, anglePlanet + math.rad(90), anglePlanet - math.rad(90))
+          love.graphics.setColor(255,255,255,255)
+        end
+      --end
+    end
+  end
+end
+
+function PlayState:checkOrbitsDone()  --Chequea si lograste alguna orbita estable, si es asi llena la posición de la tabla de ese nivel con un true, si se desestabiliza la llena con false. (Debería ir en Levels pero no he podido pasarlo exitosamente)
+  for i, p in ipairs(probes) do
+    if p.intersect then
+      self.orbitsNeededToWin[i] = true
+    elseif not p.intersect then
+      self.orbitsNeededToWin[i] = false
+    end
+  end
+end
+
+
+function PlayState:checkWin() -- chequea si se lograron todas las orbitas de un nivel. Si se completaron todos los niveles el estado de juego es Win, lo que pone la pantalla a Win en pausa. Si solo se completo un nivel, sube al siguiente nivel y resetea initLevel, resetea orbits needed to win, zonas Color y probes, deselecciona la probe seleccionada. (Debería ir en Levels pero no he podido pasarlo exitosamente)
+  if #self.orbitsNeededToWin > 0 then
+    if utils.tableCount(self.orbitsNeededToWin, true) == #self.orbitsNeededToWin then
+      self.level = self.level + 1
+      if self.level <= self.lastLevel then
+        self.probesByLevelMaker = LevelMaker.createLevel(self.level)[1]
+        --level variables
+        self.orbitsNeededToWin = {}
+        for i = 1, self.probesByLevelMaker do
+          table.insert(self.orbitsNeededToWin, false)
+        end
+        --orbits area
+        self.colorZones = ColorZones(self.planet, self.probesByLevelMaker, self.orbitsNeededToWin)
+        
+        probes = {}
+        probeSelected = 0
+        
+        gSounds['select']:play()
+        
+        gStateMachine:change('serve', {
+            level = self.level,
+            lastLevel = self.lastLevel,
+            planet = self.planet,
+            probesByLevelMaker = self.probesByLevelMaker,
+            orbitsNeededToWin = self.orbitsNeededToWin,
+            colorZones = self.colorZones,
+            firstLevel = self.firstLevel
+        })
+      else
+        gSounds['select']:play()
+      
+        gStateMachine:change('win')
+      end
+    end
+  end
 end

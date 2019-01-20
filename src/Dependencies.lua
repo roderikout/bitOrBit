@@ -8,11 +8,15 @@ Class = require 'lib/class'
 
 utils = require 'lib/utils'  --funciones utilitarias creadas por mi
 lume = require 'lib/lume'  --funciones auxiliares bajadas de GitHub (buscar copyright)
-
+ 
 cameraMain = require 'lib/camera'.new(0,0)
 timer = require 'lib/timer'
 vector = require 'lib/vector'
 
+-- https://github.com/Ulydev/push
+push = require 'lib/push'
+
+--Controlador de la State Machine
 require 'src/StateMachine'
 
 -- each of the individual states our game can be in at once; each state has
@@ -24,11 +28,20 @@ require 'src/states/StartState'
 require 'src/states/ServeState'
 require 'src/states/GameOverState'
 require 'src/states/VictoryState'
+require 'src/states/WinState'
 
---otras dependencias
-require 'src/Keyboards' --funciones para el teclado
+-- assets
+require 'src/Planet'
+require 'src/Probe'
+require 'src/LevelMaker'
+require 'src/ColorZones'
 
---recortando funciones
+--otras utilidades
+--require 'src/Keyboards' --funciones para el teclado
+require 'src/Constants'
+require 'src/Prints'
+
+--recortando funciones esto va en UTILS
 --keyboard & mouse
 isDown = love.keyboard.isDown
 

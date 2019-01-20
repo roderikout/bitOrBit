@@ -1,5 +1,5 @@
 --[[Funciones de teclado --[[Hay unas funciones de teclado que no están bien, 
-las que se presionan seguido.]]--
+las que se presionan seguido.
 
 
 function love.keypressed(key)
@@ -61,8 +61,9 @@ function love.keypressed(key)
       probeLanzar = false
       game.level = LevelStart()
     end
-  elseif key == "i" then
-    level.instructionsOn = not level.instructionsOn
+  --elseif key == "i" then
+   -- level.instructionsOn = not level.instructionsOn
   end
 end
 
+]]--

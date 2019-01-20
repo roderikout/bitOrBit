@@ -12,6 +12,9 @@ function love.load()
     -- important for a nice crisp, 2D look
     love.graphics.setDefaultFilter('nearest', 'nearest')
 
+    --camaras
+	--cameraMain:zoom(0.58)
+
 	--Seed the RNG
 	math.randomseed(os.time())
 
@@ -29,11 +32,19 @@ function love.load()
 
 	}
 
+	--[[ initialize our virtual resolution, which will be rendered within our
+    -- actual window no matter its dimensions
+    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
+        vsync = true,
+        fullscreen = false,
+        resizable = true
+    })]]
+
 	--load sounds
 	gSounds = {
 
-	['musicIntro'] = love.audio.newSource("sounds/orbitSong3.ogg", "static"),
-	['musicGamePlay'] = love.audio.newSource("sounds/orbitSong2.ogg", "static"),
+	['musicGamePlay'] = love.audio.newSource("sounds/orbitSong3.ogg", "static"),
+	['musicIntro'] = love.audio.newSource("sounds/orbitSong2.ogg", "static"),
 	['bwam'] = love.audio.newSource("sounds/Bwam2.ogg"),
 	['pop'] = love.audio.newSource("sounds/Pop3.ogg"),
 	['explosion'] = love.audio.newSource("sounds/Xplode2.ogg"),
@@ -50,7 +61,8 @@ function love.load()
 	['play'] = function() return PlayState() end,
 	['serve'] = function() return ServeState() end,
 	['game-over'] = function() return GameOverState() end,
-	['victory'] = function() return VictoryState() end
+	['victory'] = function() return VictoryState() end,
+	['win'] = function() return WinState() end
 
 	}
 
@@ -61,7 +73,23 @@ function love.load()
     -- test for input from within other functions
 	love.keyboard.keysPressed = {}
 
+	--Global Variables
+	gameState = 'start'
+  	probes = {}
+  	probeSelected = 0
+  
 end
+
+--[[
+    Called whenever we change the dimensions of our window, as by dragging
+    out its bottom corner, for example. In this case, we only need to worry
+    about calling out to `push` to handle the resizing. Takes in a `w` and
+    `h` variable representing width and height, respectively.
+function love.resize(w, h)
+    push:resize(w, h)
+end
+
+]]
 
 function love.update(dt)
 	gStateMachine:update(dt)
