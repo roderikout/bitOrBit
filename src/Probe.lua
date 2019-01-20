@@ -106,18 +106,7 @@ end
 
 function Probe:update(dt)
 
-	self.prevPos = self.pos
-
-	self:popCirclesUpdate(dt)
-
-	self:stelaUpdate()
-
-  self.pos = self.pos + self.sp * (dt * self.modDT) --dt modificado para que vaya mas lento
-	self.postPos = self.pos
-	self.direction = math.atan2((self.pos.y - self.prevPos.y), (self.pos.x - self.prevPos.x))
-
-  self.x = self.pos.x
-  self.y = self.pos.y
+  self:moveProbe(dt)
 
   if self.selected then
     if love.keyboard.isDown("up") then
@@ -134,6 +123,21 @@ function Probe:update(dt)
   end
 
   self:keyboardMove(dt)
+end
+
+function Probe:moveProbe(dt)
+  self.prevPos = self.pos
+
+  self:popCirclesUpdate(dt)
+
+  self:stelaUpdate()
+
+  self.pos = self.pos + self.sp * (dt * self.modDT) --dt modificado para que vaya mas lento
+  self.postPos = self.pos
+  self.direction = math.atan2((self.pos.y - self.prevPos.y), (self.pos.x - self.prevPos.x))
+
+  self.x = self.pos.x
+  self.y = self.pos.y
 end
 
 function Probe:popCirclesUpdate(dt)
@@ -201,7 +205,7 @@ function Probe:drawThrust(dir)
   love.graphics.setLineWidth(1)
 end
 
-function Probe:checkDestroyProbe(planet)
+function Probe:checkDestroyProbe(planet, try)
   self.planet = planet
   if (self.distanceToPlanet + self.r > planet.gravityRadius) or
       (self.distanceToPlanet - self.r < planet.radius) then --Si la probe se sale del campo de gravedad o cae en el planeta
@@ -210,7 +214,9 @@ function Probe:checkDestroyProbe(planet)
       probeSelected = 0
     end
     self.dead = true
-    gSounds['explosion']:play()
+    if not try then
+      gSounds['explosion']:play()
+    end
   end
 end
 

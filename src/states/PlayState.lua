@@ -166,16 +166,44 @@ function PlayState:launchProbes(dt)
   end
 end
 
-function PlayState:manageLaunchProbes(first, dt, i)-- maneja la posicion, direccion y velocidad inicial de las probes, first se refiere a si es la primera probe lanzada
--- por ahora esta este metodo para garantizar probes exitosos pero es muy limitado, solo a 4 variables. speed = 180, 180, 270, 0
+function PlayState:generateProbesInitialPositionDirection(dt)
   local modRad = lume.random(50)
   local uno = {self.probeX, self.probeY, lume.randomchoice({math.rad(300 - modRad), math.rad(270 + modRad)})}
   local dos = {self.probeX, -self.probeY, lume.randomchoice({math.rad(300 + modRad), math.rad(90 - modRad)})}
   local tres = {-self.probeX, self.probeY, lume.randomchoice({math.rad(360 - modRad), math.rad(0 + modRad)})}
   local cuatro = {-self.probeX, -self.probeY, lume.randomchoice({math.rad(100 - modRad), math.rad(90 + modRad)})}
-  local probeData = lume.randomchoice({uno,dos,tres,cuatro})
 
-  gSounds['bwam']:play()
+  local probeData = {}
+  local probeTry = {}
+
+  local iniciando = true
+  
+  local countLoop = 0
+
+  repeat
+    if iniciando then
+      probeData = lume.randomchoice({uno,dos,tres,cuatro})
+      probeTry = Probe(probeData[1], probeData[2], utils.randomInt(self.probeSpeedInitialMin, self.probeSpeedInitialMax), probeData[3])
+    end
+    iniciando = false
+    probeTry:moveProbe(dt)
+    probeTry:influencedByGravityOf(self.planet)
+    probeTry:checkDestroyProbe(self.planet, true)
+    if probeTry.dead then
+      iniciando = true 
+      countLoop = 0     
+    end
+    countLoop = countLoop + 1
+  until countLoop == 10000
+
+  return probeData
+end
+
+function PlayState:manageLaunchProbes(first, dt, i)-- maneja la posicion, direccion y velocidad inicial de las probes, first se refiere a si es la primera probe lanzada
+-- por ahora esta este metodo para garantizar probes exitosos pero es muy limitado, solo a 4 variables.
+
+  local probeData = self:generateProbesInitialPositionDirection(dt)
+  
   local p = #probes + 1
   local probString = "probe" .. tostring(p)
   local probStr = Probe(probeData[1], probeData[2], utils.randomInt(self.probeSpeedInitialMin, self.probeSpeedInitialMax), probeData[3])
@@ -183,6 +211,7 @@ function PlayState:manageLaunchProbes(first, dt, i)-- maneja la posicion, direcc
   probStr.popX = probStr.x
   probStr.popY = probStr.y
 
+  
   if first then
     probStr.number = p
     probes[p] = probStr
@@ -192,6 +221,7 @@ function PlayState:manageLaunchProbes(first, dt, i)-- maneja la posicion, direcc
     table.insert(probes, i, probStr)
     self.timeProbes = 0
   end
+  gSounds['bwam']:play()
 
 end
 
@@ -204,7 +234,7 @@ end
 function PlayState:probeMechanics(dt)
   for i, p in ipairs(probes) do        
       p:influencedByGravityOf(self.planet)
-      p:checkDestroyProbe(self.planet)
+      p:checkDestroyProbe(self.planet, false)
       p:checkLowHigh(self.planet, self.colorZones)
       if p.dead then
         table.remove(probes, i)
