@@ -14,9 +14,6 @@
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 
--- size we're trying to emulate with push
-VIRTUAL_WIDTH = 432
-VIRTUAL_HEIGHT = 243
-
---levels Total
-TOTAL_LEVELS = 0
+--NIVELES
+INITIAL_LEVEL = 1
+TOTAL_LEVELS = 2

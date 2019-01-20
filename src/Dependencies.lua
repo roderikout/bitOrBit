@@ -13,9 +13,6 @@ cameraMain = require 'lib/camera'.new(0,0)
 timer = require 'lib/timer'
 vector = require 'lib/vector'
 
--- https://github.com/Ulydev/push
-push = require 'lib/push'
-
 --Controlador de la State Machine
 require 'src/StateMachine'
 
@@ -37,7 +34,6 @@ require 'src/LevelMaker'
 require 'src/ColorZones'
 
 --otras utilidades
---require 'src/Keyboards' --funciones para el teclado
 require 'src/Constants'
 require 'src/Prints'
 

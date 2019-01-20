@@ -56,8 +56,8 @@ function StartState:init()
     gSounds['musicIntro']:setLooping(true)
 
     --levelInit
-    self.levelInit = 0
-    self.lastLevel = 1
+    self.levelInit = INITIAL_LEVEL
+    self.lastLevel = TOTAL_LEVELS
     self.planet = Planet(0, 0, 20, 300000, 380)
     self.probesByLevelMaker = LevelMaker.createLevel(self.levelInit)[1]
     self.orbitsNeededToWin = {}

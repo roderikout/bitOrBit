@@ -61,11 +61,13 @@ function PlayState:update(dt)
   if self.paused then
       if love.keyboard.wasPressed('space') then
           self.paused = false
+          gameState = 'play'
       else
           return
       end
   elseif love.keyboard.wasPressed('space') then
       self.paused = true
+      gameState = 'pause'
       return
   end
 
@@ -103,7 +105,7 @@ function PlayState:update(dt)
   elseif love.keyboard.wasPressed('r') then -- reset all probes
     probes = {}
     probeSelected = 0
-    gameState  = "play"
+    gameState  = 'play'
     gSounds['explosion']:play()
   elseif love.keyboard.wasPressed('f') then -- follow probe with camera
     --cameraFollows = not cameraFollows
@@ -133,6 +135,12 @@ function PlayState:render()
     end
   ) 
   printTitle(self.level, self.debug, self.instructionsOn)
+
+  if gameState == 'pause' then
+    love.graphics.setFont(gFonts['big'])
+    love.graphics.printf("PAUSE",
+      0, WINDOW_HEIGHT / 2, WINDOW_WIDTH, 'center')
+  end
 end
 
 function PlayState:launchProbes(dt)
@@ -174,7 +182,6 @@ function PlayState:manageLaunchProbes(first, dt, i)-- maneja la posicion, direcc
   probStr.name = probString
   probStr.popX = probStr.x
   probStr.popY = probStr.y
- 
 
   if first then
     probStr.number = p

@@ -1,6 +1,12 @@
---[[Rehaciendo el main para adaptarlo a nuevos
-aprendizajes, todavia no se muy bien como lo 
-voy a hacer...
+--[[
+
+	BIT OR BIT
+
+	Juego de orbitas planetarias
+
+	Autor: Rodrigo Garcia
+	roderikout@gmail.com
+
 ]]--
 
 require 'src/Dependencies'
@@ -11,9 +17,6 @@ function love.load()
     -- means there will be no filtering of pixels (blurriness), which is
     -- important for a nice crisp, 2D look
     love.graphics.setDefaultFilter('nearest', 'nearest')
-
-    --camaras
-	--cameraMain:zoom(0.58)
 
 	--Seed the RNG
 	math.randomseed(os.time())
@@ -31,15 +34,6 @@ function love.load()
 	['small'] = love.graphics.setNewFont(20)
 
 	}
-
-	--[[ initialize our virtual resolution, which will be rendered within our
-    -- actual window no matter its dimensions
-    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
-        vsync = true,
-        fullscreen = false,
-        resizable = true
-    })]]
-
 	--load sounds
 	gSounds = {
 
@@ -49,7 +43,8 @@ function love.load()
 	['pop'] = love.audio.newSource("sounds/Pop3.ogg"),
 	['explosion'] = love.audio.newSource("sounds/Xplode2.ogg"),
 	['trust'] = love.audio.newSource("sounds/Trust2.ogg"),
-	['select'] = love.audio.newSource("sounds/select.wav")
+	['select'] = love.audio.newSource("sounds/select.wav"),
+	['launch'] = love.audio.newSource("sounds/launch.wav")
  
 	}
 
@@ -74,22 +69,11 @@ function love.load()
 	love.keyboard.keysPressed = {}
 
 	--Global Variables
-	gameState = 'start'
   	probes = {}
   	probeSelected = 0
   
 end
 
---[[
-    Called whenever we change the dimensions of our window, as by dragging
-    out its bottom corner, for example. In this case, we only need to worry
-    about calling out to `push` to handle the resizing. Takes in a `w` and
-    `h` variable representing width and height, respectively.
-function love.resize(w, h)
-    push:resize(w, h)
-end
-
-]]
 
 function love.update(dt)
 	gStateMachine:update(dt)

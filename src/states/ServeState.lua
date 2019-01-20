@@ -23,19 +23,9 @@ function ServeState:enter(params)
     self.orbitsNeededToWin = params.orbitsNeededToWin
     self.colorZones = params.colorZones
     self.firstLevel = params.firstLevel
-    --self.planet = Planet(0, 0, 30, 1000000, 600)
-    --self.planet = Planet(0, 0, 20, 300000, 380)
+  
     gameState = 'serve'
-    --self.probesByLevelMaker = LevelMaker.createLevel(self.level)[1]
-
-    --level variables
-    --[[self.orbitsNeededToWin = {}
-    for i = 1, self.probesByLevelMaker do
-      table.insert(self.orbitsNeededToWin, false)
-    end--]]
-    --orbits area
-    --self.colorZones = ColorZones(self.planet, self.probesByLevelMaker, self.orbitsNeededToWin)
-
+    
     --camera
     cameraMain:lookAt(0,0)
 
@@ -43,6 +33,7 @@ function ServeState:enter(params)
     self.instructionsOn = false
     
     gSounds['musicIntro']:stop()
+    gSounds['launch']:play()
 
     --debugging
     self.debug = "Nothing happnning"
@@ -87,6 +78,6 @@ function ServeState:render()
 
   -- instructions text
   love.graphics.setFont(gFonts['medium'])
-  love.graphics.printf('Press Space to serve!', 0, WINDOW_HEIGHT / 2,
+  love.graphics.printf('Press Space to launch satellites!', 0, WINDOW_HEIGHT / 2,
       WINDOW_WIDTH, 'center')
 end 
