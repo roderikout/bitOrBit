@@ -1,4 +1,14 @@
+--[[ 
 
+	BitOrBit v.1.1.5
+
+    Author: Rodrigo Garcia
+    roderikout@gmail.com
+
+  	-- Prints --
+
+	Para imprimir algunas cosas en pantalla
+]]--
 
 function printTitle(level, debug, instructionsOn)
 

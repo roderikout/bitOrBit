@@ -1,11 +1,11 @@
 --[[
 
-	BIT OR BIT
+	BitOrBit v.1.1.5
+
+    Author: Rodrigo Garcia
+    roderikout@gmail.com
 
 	Juego de orbitas planetarias
-
-	Autor: Rodrigo Garcia
-	roderikout@gmail.com
 
 ]]--
 
@@ -55,7 +55,6 @@ function love.load()
 	['start'] = function() return StartState() end,
 	['play'] = function() return PlayState() end,
 	['serve'] = function() return ServeState() end,
-	['game-over'] = function() return GameOverState() end,
 	['victory'] = function() return VictoryState() end,
 	['win'] = function() return WinState() end
 

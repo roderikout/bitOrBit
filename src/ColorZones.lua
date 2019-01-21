@@ -1,3 +1,16 @@
+--[[
+    BitOrBit v.1.1.5
+
+    Author: Rodrigo Garcia
+    roderikout@gmail.com
+
+    -- ColorZones Class --
+    
+    Clase usada para manejar las orbitas de colores y sus regiones llamadas zonas
+    Se inicializa con el planeta alredeor del cual se ubican las zonas, el numero de zonas y la tabla
+      orbitsNeededToWin  
+]]
+
 
 ColorZones = Class{}
 
@@ -16,6 +29,10 @@ function ColorZones:init(planet, zones, orbitsNeededToWin)
 	self.zonasColor = {}
 end
 
+
+--[[
+  En el render se maneja el alpha si la probe esta en su orbita de manera estable
+]]
 function ColorZones:render()
 	for i = 1, self.zones do
     if #self.orbitsNeededToWin > 0 then
@@ -39,7 +56,11 @@ function ColorZones:render()
 	end
 end
 
-function ColorZones.colorToLine(i, alpha)  --asigna colores a probes y orbitas según número de probes, maximo 7 probes. Buscar otro método más amplio
+--[[
+  -Metodo no estatico, se puede usar solo llamando a la clase sin instanciarla
+  -Asigna colores a probes y orbitas según número de probes, maximo 7 probes. ARREGLAR, Buscar otro método más amplio  
+]]
+function ColorZones.colorToLine(i, alpha)  
 
   if i == 1 then  -- rojo
     red, green, blue = 255, 0 , 0

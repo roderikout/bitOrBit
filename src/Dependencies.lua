@@ -1,5 +1,16 @@
---[[ Dependencias de clases y de otros 
-archivos lua]]--
+--[[ 
+
+	BitOrBit v.1.1.5
+
+    Author: Rodrigo Garcia
+    roderikout@gmail.com
+
+  	-- Dependencies --
+
+	Dependencias de clases y de otros archivos
+
+]]--
+
 
 --Object = require 'classic'.
 
@@ -57,31 +68,3 @@ getDimensions = love.graphics.getDimensions
 ----------
 
 width, height = getDimensions()
-
-----------
-
-
-
---require ("prints") --funciones de textos en pantalla start (debería tener todos los textos)
-
---require ("mouseAndCameras") --Funciones de uso de ratón y cámaras
---require ("gameMechanics") --mecánicas generales del juegeo. Separar las que pertenecen a las probes, los planetas, a los niveles y al juego
---
-
---
---require ("planeta")
---require ("planetsData")
-
-----------
-
---require ("probe7")
---require ("probeActive")
---require ("probeExplode")
---require ("probesData")
----
-
---require ("level")
---require ("levelStart")
-
------
-

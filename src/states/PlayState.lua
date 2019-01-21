@@ -1,13 +1,13 @@
 --[[
     BitOrBit v.1.1.5
 
-    -- PlayState Class --
-
     Author: Rodrigo Garcia
     roderikout@gmail.com
 
     Original by: Colton Ogden, cogden@cs50.harvard.edu
     
+    -- PlayState Class --
+
     Represents the state of the game in which we are actively playing;
   
 ]]
@@ -107,8 +107,6 @@ function PlayState:update(dt)
     probeSelected = 0
     gameState  = 'play'
     gSounds['explosion']:play()
-  elseif love.keyboard.wasPressed('f') then -- follow probe with camera
-    --cameraFollows = not cameraFollows
   end   
 
   --update probe launching and movement
@@ -118,7 +116,7 @@ function PlayState:update(dt)
   self:checkOrbitsDone()
   
 
-  --update ColorZones
+  --update ColorZones for alpha change purposes
   self.colorZones = ColorZones(self.planet, self.probesByLevelMaker, self.orbitsNeededToWin)
 
 end
@@ -143,6 +141,11 @@ function PlayState:render()
   end
 end
 
+--[[ launchProbes:
+  -Se encarga de lanzar las probes usando la funcion manageLaunchProbes en intervalos de tiempo X
+  -Por cada probe lanzada se anade su numero id a la tabla probesOrbiting
+  -Si por alguna razon cualquier probe deja de existir, se lanza de nuevo la misma probe pasado el tiempo X
+]]--
 function PlayState:launchProbes(dt)
   self.probesOrbiting = {}
   if #probes == 0 and self.probeLanzar then --probes es Global en Main
@@ -166,8 +169,19 @@ function PlayState:launchProbes(dt)
   end
 end
 
-function PlayState:manageLaunchProbes(first, dt, i)-- maneja la posicion, direccion y velocidad inicial de las probes, first se refiere a si es la primera probe lanzada
--- por ahora esta este metodo para garantizar probes exitosos pero es muy limitado, solo a 4 variables. speed = 180, 180, 270, 0
+--[[ manageLaunchProbes:
+  -Establece la posicion, direccion y velocidad inicial de las probes, al azar, 
+    segun un numero de posibilidades predeterminadas (4 opciones que no resultaron tan buenas) ARREGLAR, 
+    se puede hacer en Enter muchas mas opciones una vez y en esta funcion solo se hace el randomchoice.  
+  -El parametro first se refiere a si es la primera probe lanzada.
+  -Establece las posibilidades para x, y y direccion
+  -Selecciona una al azar
+  -Le coloca un nombre ??
+  -Crea una probe con esos datos al azar y con la velocidad tambien seleccionada entre dos limites.
+  -Establece la posicion pop, para los circulos concentricos
+  -La primera probe entra sola, las demas usando el parametro i
+]]--
+function PlayState:manageLaunchProbes(first, dt, i)
   local modRad = lume.random(50)
   local uno = {self.probeX, self.probeY, lume.randomchoice({math.rad(300 - modRad), math.rad(270 + modRad)})}
   local dos = {self.probeX, -self.probeY, lume.randomchoice({math.rad(300 + modRad), math.rad(90 - modRad)})}
@@ -195,12 +209,23 @@ function PlayState:manageLaunchProbes(first, dt, i)-- maneja la posicion, direcc
 
 end
 
-function PlayState:drawTableEntities(table)  -- dibuja planetas y probes
+--[[ drawTableEntities:
+  Para rendear todas las entidades que hay en una tabla (probes, por ejemplo)
+]]--
+function PlayState:drawTableEntities(table)
   for i, entity in ipairs(table) do
     entity:render()
   end
 end
 
+--[[ probeMechanics:
+  -For loop entre todas las probes de la tabla y usa las funciones de:
+    -influencedByGravityOf, para que se vean afectadas por la gravedad de un planeta
+    -checkDestroyProbe, para ver si pasaron los limites interno y externo y destruir la probe
+    -checkLowHigh, para establecer el punto alto y bajo de su orbita
+    -Revisa si la probe esta muerta para eliminarla de la lista
+    -Finalmente ejecuta el update de la probe
+]]--
 function PlayState:probeMechanics(dt)
   for i, p in ipairs(probes) do        
       p:influencedByGravityOf(self.planet)
@@ -213,6 +238,11 @@ function PlayState:probeMechanics(dt)
   end
 end
 
+--[[ gravityBeam:
+  -Si estamos en modo play hacemos un for loop por todas las probes para ver si alguna esta seleccionada. ARREGLAR,
+    se puede buscar si una esta seleccionada en la tabla y usar solo esa, no hacer el for loop cada frame
+  -Dibuja el gravity beam sobre la probe seleccionada
+]]--
 function PlayState:gravityBeam()
   if gameState == "play" then
     for i, p in ipairs(probes) do
@@ -235,7 +265,15 @@ function PlayState:gravityBeam()
   end
 end
 
-function PlayState:checkOrbitsDone()  --Chequea si lograste alguna orbita estable, si es asi llena la posición de la tabla de ese nivel con un true, si se desestabiliza la llena con false. (Debería ir en Levels pero no he podido pasarlo exitosamente)
+--[[ checkOrbitsDone
+  -For loop sobre las probes para ver si hay orbitas estables 
+  -Si hay orbita estable se coloca un true en la misma posicion de la probe en la tabla orbitsNeededToWin, 
+    creada segun el numero de probes de este nivel.
+  -Se usa la propiedad intersect de la probe, que es cuando ha pasado 2 veces por el mismo punto de la orbita
+    sin salirse de la misma
+  -Si la probe se sale de la orbita, se llena esta posicion con false.
+]]
+function PlayState:checkOrbitsDone()  
   for i, p in ipairs(probes) do
     if p.intersect then
       self.orbitsNeededToWin[i] = true
@@ -245,8 +283,13 @@ function PlayState:checkOrbitsDone()  --Chequea si lograste alguna orbita establ
   end
 end
 
-
-function PlayState:checkWin() -- chequea si se lograron todas las orbitas de un nivel. Si se completaron todos los niveles el estado de juego es Win, lo que pone la pantalla a Win en pausa. Si solo se completo un nivel, sube al siguiente nivel y resetea initLevel, resetea orbits needed to win, zonas Color y probes, deselecciona la probe seleccionada. (Debería ir en Levels pero no he podido pasarlo exitosamente)
+--[[ checkWin:
+  -Chequea si se lograron todas las orbitas de un nivel. 
+  -Chequea si se completaron todos los niveles del juego.
+  - Si solo se completo un nivel, sube al siguiente nivel y resetean 
+    initLevel, orbitsNeededToWin, zonasColor y probes, y deselecciona la probe seleccionada.
+]]
+function PlayState:checkWin() 
   if #self.orbitsNeededToWin > 0 then
     if utils.tableCount(self.orbitsNeededToWin, true) == #self.orbitsNeededToWin then
       self.level = self.level + 1

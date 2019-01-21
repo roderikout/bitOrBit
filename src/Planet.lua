@@ -1,3 +1,17 @@
+--[[ 
+
+  BitOrBit v.1.1.5
+
+    Author: Rodrigo Garcia
+    roderikout@gmail.com
+
+    -- Planet class --
+
+  Para crear los planetas
+
+]]--
+
+
 Planet = Class{}
 
 -- self.vector = require ("vector")

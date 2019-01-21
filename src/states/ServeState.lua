@@ -1,12 +1,12 @@
 --[[
     BitOrBit v.1.1.5
 
-    -- ServeState Class --
-
     Author: Rodrigo Garcia
     roderikout@gmail.com
 
     Original by: Colton Ogden, cogden@cs50.harvard.edu
+
+    -- LaunchState Class --
 
     The state in which we are waiting to serve the probes. Hit space
     to begin
@@ -78,6 +78,6 @@ function ServeState:render()
 
   -- instructions text
   love.graphics.setFont(gFonts['medium'])
-  love.graphics.printf('Press Space to launch satellites!', 0, WINDOW_HEIGHT / 2,
+  love.graphics.printf('Press Space to launch probes!', 0, WINDOW_HEIGHT / 2,
       WINDOW_WIDTH, 'center')
 end 

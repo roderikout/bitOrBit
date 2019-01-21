@@ -1,3 +1,16 @@
+--[[ 
+
+  BitOrBit v.1.1.5
+
+    Author: Rodrigo Garcia
+    roderikout@gmail.com
+
+    -- Probes Class --
+
+  Para generar y manejar las probes
+
+]]--
+
 
 Probe = Class{}
 
@@ -59,7 +72,7 @@ function Probe:init(x, y, speed, direction)
 
 end
 
-function Probe:render()
+function Probe:render() --renderiza todo
 
   if gameState == "play" then
     if self.up then
@@ -77,7 +90,7 @@ function Probe:render()
 
 end
 
-function Probe:probeDraw()
+function Probe:probeDraw() --dibuja las probes
 	love.graphics.setColor(ColorZones.colorToLine(self.number, self.alpha)) 
   love.graphics.circle("fill", self.x, self.y, self.r)
   love.graphics.setColor(0,0,0,255)
@@ -85,7 +98,7 @@ function Probe:probeDraw()
   love.graphics.setColor(255,255,255,255)
 end
 
-function Probe:popCirclesDraw()
+function Probe:popCirclesDraw()  --dibujas los circulos de aparecer de las probes
   love.graphics.setLineWidth(self.lineaCircles)
   love.graphics.setColor(250, 250, 250, self.alphaCirc)
   love.graphics.circle("line", self.popX, self.popY, self.radCirc)
@@ -97,14 +110,14 @@ function Probe:popCirclesDraw()
   love.graphics.setLineWidth(1)
 end
 
-function Probe:stelaDraw()
+function Probe:stelaDraw() --dibuja la estela que deja la probe
 	for i, p in ipairs(self.probeStela) do
    	love.graphics.setColor(ColorZones.colorToLine(self.number, self.alpha/10 * (#self.probeStela - i * 1.8) / #self.probeStela))
    	love.graphics.circle('fill', p.x, p.y, self.r / (1 + (i * 0.02)))    
   end
 end
 
-function Probe:update(dt)
+function Probe:update(dt) --update de todas las funciones necesarias
 
 	self.prevPos = self.pos
 
@@ -136,7 +149,7 @@ function Probe:update(dt)
   self:keyboardMove(dt)
 end
 
-function Probe:popCirclesUpdate(dt)
+function Probe:popCirclesUpdate(dt)  --update del movimiento de los circulos de pop de las probes
   	if self.radCirc > 0 then
     	self.radCirc = self.radCirc + (15 * (dt * 5))
     	self.alphaCirc =  self.alphaCirc - (21 * (dt * 5))
@@ -147,7 +160,7 @@ function Probe:popCirclesUpdate(dt)
   	end
 end
 
-function Probe:stelaUpdate()
+function Probe:stelaUpdate()  --update del movimiento de la estela
 	if #self.probeStela < self.stelaMax then
     	table.insert(self.probeStela, 1, self.pos)
   	end
@@ -156,7 +169,7 @@ function Probe:stelaUpdate()
   	end
 end
 
-function Probe:influencedByGravityOf(planet)
+function Probe:influencedByGravityOf(planet)  -- funcion para ser afectado por la gravedad de un planeta
 
     self.planet = planet
     self.distanceToPlanet = self.pos:dist(planet.pos)
@@ -170,7 +183,7 @@ function Probe:influencedByGravityOf(planet)
 
 end
 
-function Probe:keyboardMove(dt)
+function Probe:keyboardMove(dt)  --funcion para aplicar velocidad en la direccion de movimiento de la probe o en contra
   if self.selected then
     self.vectorDirection = vector.fromPolar(self.direction, self.probeThrustPower)
     local b = self.vectorDirection:rotated(math.pi/2)
@@ -182,7 +195,7 @@ function Probe:keyboardMove(dt)
   end
 end
 
-function Probe:drawThrust(dir)
+function Probe:drawThrust(dir)  -- para dibujar el thrust de la probe al ser impulsada
   love.graphics.setLineWidth(15)
   local rInt = utils.randomInt(1,2)
   local direction = math.atan2((self.pos.y - self.prevPos.y), (self.pos.x - self.prevPos.x))
@@ -201,7 +214,7 @@ function Probe:drawThrust(dir)
   love.graphics.setLineWidth(1)
 end
 
-function Probe:checkDestroyProbe(planet)
+function Probe:checkDestroyProbe(planet)  --para chequear si la probe se salio de los limites de juego y marcarla como muerta
   self.planet = planet
   if (self.distanceToPlanet + self.r > planet.gravityRadius) or
       (self.distanceToPlanet - self.r < planet.radius) then --Si la probe se sale del campo de gravedad o cae en el planeta
@@ -214,7 +227,7 @@ function Probe:checkDestroyProbe(planet)
   end
 end
 
-function Probe:checkLowHigh(planet, colorZones)
+function Probe:checkLowHigh(planet, colorZones)  -- saber el punto mas alto y mas bajo de su orbita
   intersection = false
   vectorPlanet = vector.new(planet.x, planet.y)
   zonaMin = colorZones.zonasColor[self.number].min
@@ -226,7 +239,7 @@ function Probe:checkLowHigh(planet, colorZones)
   self:checkLaps()
 end
 
-function Probe:checkInsideOrbit()
+function Probe:checkInsideOrbit() --para saber si la probe esta dentro de su orbita
    if distancia + self.r > zonaMin and distancia + self.r < zonaMax then 
       self.pIn = vector.fromPolar(angle, distancia)
       self.pMin = vector.fromPolar(angle, zonaMin)
@@ -244,7 +257,7 @@ function Probe:checkInsideOrbit()
     end
 end
 
-function Probe:checkLaps() --Viene de CheckInsideOrbit y Luego a Game.checkOrbitsDone
+function Probe:checkLaps() --Viene de CheckInsideOrbit y Luego a Game.checkOrbitsDone, cuenta las vueltas que da sin salirse de la orbita
   if self.inMyOrbit then
     intersection = utils.intersectSegment(self.prevPos.x, self.prevPos.y, self.postPos.x, self.postPos.y, self.probeInOrbitLine[1].pMin.x, self.probeInOrbitLine[1].pMin.y, self.probeInOrbitLine[1].pMax.x, self.probeInOrbitLine[1].pMax.y)
   end

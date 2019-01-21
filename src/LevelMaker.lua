@@ -1,3 +1,17 @@
+--[[
+    BitOrBit v.1.1.5
+
+    Author: Rodrigo Garcia
+    roderikout@gmail.com
+
+    Original by: Colton Ogden, cogden@cs50.harvard.edu
+    
+    -- Level Maker --
+
+    Para hacer los niveles. ARREGLAR, demasiado sencillo
+  
+]]
+
 
 
 LevelMaker = Class{}

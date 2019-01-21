@@ -1,11 +1,12 @@
 --[[
-    GD50
-    Breakout Remake
+    BitOrBit v.1.1.5
 
-    -- StartState Class --
+    Author: Rodrigo Garcia
+    roderikout@gmail.com
 
-    Author: Colton Ogden
-    cogden@cs50.harvard.edu
+    Original by: Colton Ogden, cogden@cs50.harvard.edu
+
+    -- VictoryState Class --
 
     Represents the state that the game is in when we've just completed a level.
     Very similar to the ServeState, except here we increment the level.
