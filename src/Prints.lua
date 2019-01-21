@@ -16,7 +16,7 @@ function printTitle(level, debug, instructionsOn)
 	if not instructionsOn then
 
 		local font = love.graphics.setNewFont(15)
-		love.graphics.print("Debug text: " .. tostring(debug), 10, (yPos * 3) + yShift)
+		--love.graphics.print("Debug text: " .. tostring(debug), 10, (yPos * 3) + yShift)
 
 	else
 		love.graphics.print("Keys: ", 10, (yPos * 3) + yShift)

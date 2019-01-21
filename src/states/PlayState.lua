@@ -51,7 +51,7 @@ function PlayState:enter(params)
     cameraMain:lookAt(0,0)
 
     --debugging
-    self.debug = 'Nothing happening'
+    self.debug = ''
 
 end
 
@@ -176,6 +176,10 @@ function PlayState:generateProbesInitialPositionDirection(dt)
   local probeData = {}
   local probeTry = {}
 
+  --probeData = lume.randomchoice({uno,dos,tres,cuatro})
+  --probeTry = Probe(probeData[1], probeData[2], utils.randomInt(self.probeSpeedInitialMin, self.probeSpeedInitialMax), probeData[3])
+
+
   local iniciando = true
   
   local countLoop = 0
@@ -194,7 +198,7 @@ function PlayState:generateProbesInitialPositionDirection(dt)
       countLoop = 0     
     end
     countLoop = countLoop + 1
-  until countLoop == 10000
+  until countLoop == 1000  
 
   return probeData
 end

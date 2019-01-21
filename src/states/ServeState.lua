@@ -36,7 +36,7 @@ function ServeState:enter(params)
     gSounds['launch']:play()
 
     --debugging
-    self.debug = "Nothing happnning"
+    self.debug = ""
 end
 
 function ServeState:update(dt)

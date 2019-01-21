@@ -25,7 +25,7 @@ function Probe:init(x, y, speed, direction)
   self.up = false
   self.down = false
   self.probeThrustPower = 100
-  self.modDT = 0.4
+  self.modDT = DT_MODIFIER
 
   --locals for checking orbits
   local intersection = false
