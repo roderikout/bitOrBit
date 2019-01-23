@@ -119,18 +119,7 @@ end
 
 function Probe:update(dt) --update de todas las funciones necesarias de las probes
 
-	self.prevPos = self.pos
-
-	self:popCirclesUpdate(dt)
-
-	self:stelaUpdate()
-
-  self.pos = self.pos + self.sp * (dt * self.modDT) --dt modificado para que vaya mas lento
-	self.postPos = self.pos
-	self.direction = math.atan2((self.pos.y - self.prevPos.y), (self.pos.x - self.prevPos.x))
-
-  self.x = self.pos.x
-  self.y = self.pos.y
+	self:movementBySpeed(dt)
 
   if self.selected then
     if love.keyboard.isDown("up") then
@@ -147,6 +136,23 @@ function Probe:update(dt) --update de todas las funciones necesarias de las prob
   end
 
   self:keyboardMove(dt)
+end
+
+function Probe:movementBySpeed(dt) --Movimiento de la probe solo dependiente de velocidad, no de aceleracion
+
+  self.prevPos = self.pos
+
+  self:popCirclesUpdate(dt)
+
+  self:stelaUpdate()
+
+  self.pos = self.pos + self.sp * (dt * self.modDT) --dt modificado para que vaya mas lento
+  self.postPos = self.pos
+  self.direction = math.atan2((self.pos.y - self.prevPos.y), (self.pos.x - self.prevPos.x))
+
+  self.x = self.pos.x
+  self.y = self.pos.y
+
 end
 
 function Probe:popCirclesUpdate(dt)  --update del crecimiento y desaparicion de los circulos de pop de las probes

@@ -24,8 +24,6 @@ function ServeState:enter(params)
     self.colorZones = params.colorZones
     self.firstLevel = params.firstLevel
   
-    gameState = 'serve'
-    
     --camera
     cameraMain:lookAt(0,0)
 
