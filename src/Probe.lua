@@ -38,9 +38,9 @@ function Probe:init(x, y, speed, direction)
   self.up = false
   self.down = false
   self.probeThrustPower = 100
-  self.modDT = 0.4
+  self.modDT = 0.6
 
-  --locals for checking orbits
+  --checking orbits
   local intersection = false
   local vectorPlanet = {0,0}
   local zonaMin = 0
@@ -90,7 +90,7 @@ function Probe:render() --renderiza todo
 
 end
 
-function Probe:probeDraw() --dibuja las probes
+function Probe:probeDraw() --dibuja las probes, un circulo sobre otro para simular el borde
 	love.graphics.setColor(ColorZones.colorToLine(self.number, self.alpha)) 
   love.graphics.circle("fill", self.x, self.y, self.r)
   love.graphics.setColor(0,0,0,255)
@@ -98,7 +98,7 @@ function Probe:probeDraw() --dibuja las probes
   love.graphics.setColor(255,255,255,255)
 end
 
-function Probe:popCirclesDraw()  --dibujas los circulos de aparecer de las probes
+function Probe:popCirclesDraw()  --dibujas los circulos al aparecer las probes
   love.graphics.setLineWidth(self.lineaCircles)
   love.graphics.setColor(250, 250, 250, self.alphaCirc)
   love.graphics.circle("line", self.popX, self.popY, self.radCirc)
@@ -110,14 +110,14 @@ function Probe:popCirclesDraw()  --dibujas los circulos de aparecer de las probe
   love.graphics.setLineWidth(1)
 end
 
-function Probe:stelaDraw() --dibuja la estela que deja la probe
+function Probe:stelaDraw() --dibuja la estela que deja la probe al moverse
 	for i, p in ipairs(self.probeStela) do
    	love.graphics.setColor(ColorZones.colorToLine(self.number, self.alpha/10 * (#self.probeStela - i * 1.8) / #self.probeStela))
    	love.graphics.circle('fill', p.x, p.y, self.r / (1 + (i * 0.02)))    
   end
 end
 
-function Probe:update(dt) --update de todas las funciones necesarias
+function Probe:update(dt) --update de todas las funciones necesarias de las probes
 
 	self.prevPos = self.pos
 
@@ -149,7 +149,7 @@ function Probe:update(dt) --update de todas las funciones necesarias
   self:keyboardMove(dt)
 end
 
-function Probe:popCirclesUpdate(dt)  --update del movimiento de los circulos de pop de las probes
+function Probe:popCirclesUpdate(dt)  --update del crecimiento y desaparicion de los circulos de pop de las probes
   	if self.radCirc > 0 then
     	self.radCirc = self.radCirc + (15 * (dt * 5))
     	self.alphaCirc =  self.alphaCirc - (21 * (dt * 5))
@@ -169,7 +169,7 @@ function Probe:stelaUpdate()  --update del movimiento de la estela
   	end
 end
 
-function Probe:influencedByGravityOf(planet)  -- funcion para ser afectado por la gravedad de un planeta
+function Probe:influencedByGravityOf(planet)  -- aplicacion de fuerza de gravedad de un planeta a la velocidad de la probe
 
     self.planet = planet
     self.distanceToPlanet = self.pos:dist(planet.pos)
@@ -183,7 +183,7 @@ function Probe:influencedByGravityOf(planet)  -- funcion para ser afectado por l
 
 end
 
-function Probe:keyboardMove(dt)  --funcion para aplicar velocidad en la direccion de movimiento de la probe o en contra
+function Probe:keyboardMove(dt)  --aplicacion de los thrust de aceleracion de las probes con Up y Down
   if self.selected then
     self.vectorDirection = vector.fromPolar(self.direction, self.probeThrustPower)
     local b = self.vectorDirection:rotated(math.pi/2)
@@ -227,7 +227,7 @@ function Probe:checkDestroyProbe(planet)  --para chequear si la probe se salio d
   end
 end
 
-function Probe:checkLowHigh(planet, colorZones)  -- saber el punto mas alto y mas bajo de su orbita
+function Probe:checkLowHigh(planet, colorZones)  -- saber el punto mas alto y mas bajo de la orbita de la probe
   intersection = false
   vectorPlanet = vector.new(planet.x, planet.y)
   zonaMin = colorZones.zonasColor[self.number].min
