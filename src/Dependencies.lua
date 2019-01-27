@@ -17,7 +17,7 @@
 -- https://github.com/vrld/hump/blob/master/class.lua
 Class = require 'lib/class'
 
-utils = require 'lib/utils'  --funciones utilitarias creadas por mi
+utils = require 'lib/utils'  --funciones utilitarias bajadas de GitHub y otras por mi
 lume = require 'lib/lume'  --funciones auxiliares bajadas de GitHub (buscar copyright)
  
 cameraMain = require 'lib/camera'.new(0,0)
@@ -36,12 +36,14 @@ require 'src/states/StartState'
 require 'src/states/ServeState'
 require 'src/states/VictoryState'
 require 'src/states/WinState'
+require 'src/states/LevelScreenState'
+require 'src/states/PlayPruebaState'
 
 -- assets
 require 'src/Planet'
 require 'src/Probe'
 require 'src/LevelMaker'
-require 'src/ColorZones'
+require 'src/GravitySystem'
 
 --otras utilidades
 require 'src/Constants'

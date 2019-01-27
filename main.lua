@@ -56,8 +56,9 @@ function love.load()
 	['play'] = function() return PlayState() end,
 	['serve'] = function() return ServeState() end,
 	['victory'] = function() return VictoryState() end,
-	['win'] = function() return WinState() end
-
+	['win'] = function() return WinState() end,
+	['level'] = function() return LevelScreenState() end,
+	['playPrueba'] = function () return PlayPruebaState() end, 
 	}
 
 	gStateMachine:change('start')

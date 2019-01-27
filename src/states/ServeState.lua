@@ -21,16 +21,15 @@ function ServeState:enter(params)
     self.planet = params.planet
     self.probesByLevelMaker = params.probesByLevelMaker
     self.orbitsNeededToWin = params.orbitsNeededToWin
-    self.colorZones = params.colorZones
     self.firstLevel = params.firstLevel
   
+    self.colorZones = self.planet.zonasColor
     --camera
     cameraMain:lookAt(0,0)
 
     --other flags
     self.instructionsOn = false
     
-    gSounds['musicIntro']:stop()
     gSounds['launch']:play()
 
     --debugging
@@ -49,7 +48,6 @@ function ServeState:update(dt)
           planet = self.planet,
           probesByLevelMaker = self.probesByLevelMaker,
           orbitsNeededToWin = self.orbitsNeededToWin,
-          colorZones = self.colorZones,
           firstLevel = self.firstLevel 
       })
     elseif love.keyboard.wasPressed('escape') then
@@ -62,17 +60,14 @@ end
 function ServeState:render()
   cameraMain:draw(
      function()
-        self.colorZones:render()
         self.planet:render()
     end
   ) 
   printTitle(self.level, self.debug, self.instructionsOn)
 
-  if not self.firstLevel then
-    love.graphics.setFont(gFonts['big'])
-    love.graphics.printf("Level " .. tostring(self.level - 1) .. " complete!",
-      0, WINDOW_HEIGHT / 4, WINDOW_WIDTH, 'center')
-  end
+  love.graphics.setFont(gFonts['big'])
+  love.graphics.printf("Level " .. tostring(self.level),
+    0, WINDOW_HEIGHT / 3, WINDOW_WIDTH, 'center')
 
   -- instructions text
   love.graphics.setFont(gFonts['medium'])

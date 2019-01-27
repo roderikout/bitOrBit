@@ -38,7 +38,7 @@ function Probe:init(x, y, speed, direction)
   self.up = false
   self.down = false
   self.probeThrustPower = 100
-  self.modDT = 0.6
+  self.modDt = 0.5 
 
   --checking orbits
   local intersection = false
@@ -58,8 +58,14 @@ function Probe:init(x, y, speed, direction)
   self.firstIntersection = false
   self.inMyOrbit = false
 
+  --for predicted position
+  self.predictedX = 0
+  self.predictedY = 0
+  self.predictedProbes = {}
+
 
  	--Pop circle waves
+  self.needPop = false
 	self.popX = 0
 	self.popY = 0
 	self.radCirc = 10
@@ -72,7 +78,7 @@ function Probe:init(x, y, speed, direction)
 
 end
 
-function Probe:render() --renderiza todo
+function Probe:render() --renderiza todo (planet y number son extras solo para la prediccion de la posicion en x frames)
 
   if gameState == "play" then
     if self.up then
@@ -83,19 +89,32 @@ function Probe:render() --renderiza todo
   end
 
   self:probeDraw()
+  --self:predictionDraw()
 
-  self:popCirclesDraw()
-
+  if self.needPop then
+    self:popCirclesDraw()
+  end
   self:stelaDraw()
 
 end
 
 function Probe:probeDraw() --dibuja las probes, un circulo sobre otro para simular el borde
-	love.graphics.setColor(ColorZones.colorToLine(self.number, self.alpha)) 
+	love.graphics.setColor(utils.numberToColor(self.number, self.alpha)) 
   love.graphics.circle("fill", self.x, self.y, self.r)
   love.graphics.setColor(0,0,0,255)
   love.graphics.circle("line", self.x, self.y, self.r)
   love.graphics.setColor(255,255,255,255)
+end
+
+function Probe:predictionDraw()
+  for i, p in ipairs(self.predictedProbes) do
+    if i % 10 == 0 then
+      love.graphics.setColor(utils.numberToColor(self.number, self.alpha)) 
+      love.graphics.circle("fill", p.x, p.y, self.r)
+      love.graphics.setColor(255,255,255,255)     
+    end
+    table.remove(self.predictedProbes, i)
+  end
 end
 
 function Probe:popCirclesDraw()  --dibujas los circulos al aparecer las probes
@@ -112,7 +131,7 @@ end
 
 function Probe:stelaDraw() --dibuja la estela que deja la probe al moverse
 	for i, p in ipairs(self.probeStela) do
-   	love.graphics.setColor(ColorZones.colorToLine(self.number, self.alpha/10 * (#self.probeStela - i * 1.8) / #self.probeStela))
+   	love.graphics.setColor(utils.numberToColor(self.number, self.alpha/10 * (#self.probeStela - i * 1.8) / #self.probeStela))
    	love.graphics.circle('fill', p.x, p.y, self.r / (1 + (i * 0.02)))    
   end
 end
@@ -122,7 +141,7 @@ function Probe:update(dt) --update de todas las funciones necesarias de las prob
 	self:movementBySpeed(dt)
 
   if self.selected then
-    if love.keyboard.isDown("up") then
+    if love.keyboard.isDown("up") then 
       self.up = true
       gSounds['trust']:play()
     elseif love.keyboard.isDown("down") then
@@ -146,7 +165,7 @@ function Probe:movementBySpeed(dt) --Movimiento de la probe solo dependiente de 
 
   self:stelaUpdate()
 
-  self.pos = self.pos + self.sp * (dt * self.modDT) --dt modificado para que vaya mas lento
+  self.pos = self.pos + self.sp * (dt * self.modDt) --dt modificado para que vaya mas lento
   self.postPos = self.pos
   self.direction = math.atan2((self.pos.y - self.prevPos.y), (self.pos.x - self.prevPos.x))
 
@@ -156,37 +175,24 @@ function Probe:movementBySpeed(dt) --Movimiento de la probe solo dependiente de 
 end
 
 function Probe:popCirclesUpdate(dt)  --update del crecimiento y desaparicion de los circulos de pop de las probes
-  	if self.radCirc > 0 then
-    	self.radCirc = self.radCirc + (15 * (dt * 5))
-    	self.alphaCirc =  self.alphaCirc - (21 * (dt * 5))
-    	if self.radCirc > 190 then
-      		self.radCirc = 0
-      		self.alphaCirc = 0
-    	end
+	if self.radCirc > 0 then
+  	self.radCirc = self.radCirc + (15 * (dt * 5))
+  	self.alphaCirc =  self.alphaCirc - (21 * (dt * 5))
+  	if self.radCirc > 190 then
+    		self.radCirc = 0
+    		self.alphaCirc = 0
+        self.needPop = false
   	end
+	end
 end
 
 function Probe:stelaUpdate()  --update del movimiento de la estela
 	if #self.probeStela < self.stelaMax then
-    	table.insert(self.probeStela, 1, self.pos)
-  	end
-  	if #self.probeStela == self.stelaMax then
-    	table.remove(self.probeStela, #self.probeStela)
-  	end
-end
-
-function Probe:influencedByGravityOf(planet)  -- aplicacion de fuerza de gravedad de un planeta a la velocidad de la probe
-
-    self.planet = planet
-    self.distanceToPlanet = self.pos:dist(planet.pos)
-    local distanceToPlanetSq = self.pos:dist2(planet.pos)
-    local gravity = (planet.mass / distanceToPlanetSq)
-    local gravAngle = math.atan2((self.pos.y - planet.pos.y), (self.pos.x - planet.pos.x))
-    local xGrav = math.sin(gravAngle - math.pi/2) * gravity
-    local yGrav = math.cos(gravAngle + math.pi/2) * gravity
-    local gravAccel = vector(xGrav, yGrav)
-    self.sp = self.sp + gravAccel
-
+  	table.insert(self.probeStela, 1, self.pos)
+	end
+	if #self.probeStela == self.stelaMax then
+  	table.remove(self.probeStela, #self.probeStela)
+	end
 end
 
 function Probe:keyboardMove(dt)  --aplicacion de los thrust de aceleracion de las probes con Up y Down
@@ -220,24 +226,11 @@ function Probe:drawThrust(dir)  -- para dibujar el thrust de la probe al ser imp
   love.graphics.setLineWidth(1)
 end
 
-function Probe:checkDestroyProbe(planet)  --para chequear si la probe se salio de los limites de juego y marcarla como muerta
-  self.planet = planet
-  if (self.distanceToPlanet + self.r > planet.gravityRadius) or
-      (self.distanceToPlanet - self.r < planet.radius) then --Si la probe se sale del campo de gravedad o cae en el planeta
-    if self.selected then
-      self.selected = false
-      probeSelected = 0
-    end
-    self.dead = true
-    gSounds['explosion']:play()
-  end
-end
-
-function Probe:checkLowHigh(planet, colorZones)  -- saber el punto mas alto y mas bajo de la orbita de la probe
+function Probe:checkLowHigh(planet)  -- saber el punto mas alto y mas bajo de la orbita de la probe
   intersection = false
   vectorPlanet = vector.new(planet.x, planet.y)
-  zonaMin = colorZones.zonasColor[self.number].min
-  zonaMax = colorZones.zonasColor[self.number].max 
+  zonaMin = planet.zonasColor[self.number].min
+  zonaMax = planet.zonasColor[self.number].max 
   distancia = utils.distanceTo(self.x, self.y, planet.x, planet.y)
   angle = math.atan2((self.pos.y - planet.y), (self.pos.x - planet.x))
 

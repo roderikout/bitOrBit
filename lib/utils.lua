@@ -133,4 +133,34 @@ function Utils.has_value (tab, val)
     return false
 end
 
+--[[
+  -Metodo no estatico, se puede usar solo llamando a la clase sin instanciarla
+  -Asigna colores a probes y orbitas según número de probes, maximo 8 probes. ARREGLAR, Buscar otro método más amplio usando Utils.map
+]]
+function Utils.numberToColor(i, alpha)
+
+  local alphaIn = alpha
+
+
+  if i == 1 then  -- rojo
+    red, green, blue = 255, 0 , 0
+  elseif i == 2 then  -- naranja
+    red, green, blue = 255, 100, 0
+  elseif i == 3 then -- amarillo
+    red, green, blue = 255, 255, 0
+  elseif i == 4 then -- verde
+    red, green, blue = 0, 255, 0
+  elseif i == 5 then -- cyan
+    red, green, blue = 0, 255, 255
+  elseif i == 6 then -- azul verdoso
+    red, green, blue = 0, 150, 255
+  elseif i == 7 then -- azul
+    red, green, blue = 0, 0, 230
+  elseif i == 8 then -- magenta
+    red, green, blue = 255, 0, 255
+  end
+
+  return red, green, blue, alpha
+end
+
 return Utils

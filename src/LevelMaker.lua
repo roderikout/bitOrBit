@@ -29,7 +29,7 @@ function LevelMaker.createLevel(level)
 		numberOfProbes = level + 1
 		multSpeedOfProbes = 0.8
 	else
-		numberOfProbes = 7
+		numberOfProbes = 8
 		multSpeedOfProbes = 1
 	end	
 

@@ -30,7 +30,7 @@ end
 
 function WinState:render()
     love.graphics.setFont(gFonts['big'])
-    love.graphics.printf('WIN', 0, WINDOW_HEIGHT / 3, WINDOW_WIDTH, 'center')
+    love.graphics.printf('You Win!', 0, WINDOW_HEIGHT / 3, WINDOW_WIDTH, 'center')
     love.graphics.setFont(gFonts['medium'])
     love.graphics.printf('Press Enter!', 0, WINDOW_HEIGHT - WINDOW_HEIGHT / 2,
         WINDOW_WIDTH, 'center')

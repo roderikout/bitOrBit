@@ -9,65 +9,57 @@
     -- PlayState Class --
 
     Represents the state of the game in which we are actively playing;
-  
-]]
+  --]]
 
-PlayState = Class{__includes = BaseState}
+
+PlayPruebaState = Class{__includes = BaseState}
 
 --[[
     We initialize what's in our PlayState via a state table that we pass between
     states as we go from playing to serving.
 ]]
-function PlayState:enter(params)
+function PlayPruebaState:enter(params)
     
-    self.level = params.level
-    self.lastLevel = params.lastLevel
-    self.firstLevel = params.firstLevel
-    self.planet = params.planet
-    self.probesByLevelMaker = params.probesByLevelMaker
-    self.orbitsNeededToWin = params.orbitsNeededToWin
-  
-    self.colorZones = self.planet.zonasColor
+    self.probesByLevelMaker = 1
+    self.planet = Planet(0, 0, 20, 300000, 340, self.probesByLevelMaker)
+
+    --launching probes initial position
+    self.probeX = self.planet.gravityRadius * 2/5 
+    self.probeY = self.planet.gravityRadius * 2/5
+    --launching probes initial speed
+    self.probeSpeedInitialMin = 300
+    self.probeSpeedInitialMax = 400 
+
     --launching probes variables
     self.probeLanzar = true
     self.probesOrbiting = {}
     self.launchInterval = 0.5
     self.timeProbes = 0
 
-    --launching probes initial position
-    self.probeX = self.planet.gravityRadius * 2/5 
-    self.probeY = self.planet.gravityRadius * 2/5
-
-    --launching probes initial speed
-    self.probeSpeedInitialMin = 300
-    self.probeSpeedInitialMax = 400 
-
-    gameState = 'play'
-
-    gSounds['musicGamePlay']:play()
-    gSounds['musicGamePlay']:setLooping(true)
+    self.predictionNumber = 100
 
     --camera
     cameraMain:lookAt(0,0)
 
-    --debugging
-    self.debug = 'Nothing happening'
+    self.debug = "Nada"
+    gameState = "play"
+    self.paused = false
 
 end
 
-function PlayState:update(dt)
+function PlayPruebaState:update(dt)
 
   --manage pause state
   if self.paused then
       if love.keyboard.wasPressed('space') then
           self.paused = false
-          gameState = 'play'
+          gameState = "play"
       else
           return
       end
   elseif love.keyboard.wasPressed('space') then
       self.paused = true
-      gameState = 'pause'
+      gameState = "pause"
       return
   end
 
@@ -105,39 +97,37 @@ function PlayState:update(dt)
   elseif love.keyboard.wasPressed('r') then -- reset all probes
     probes = {}
     probeSelected = 0
-    gameState  = 'play'
+    gameState  = "play"
     gSounds['explosion']:play()
   end   
 
-  --update probe launching and movement
   self:launchProbes(dt)
-  self:checkWin()
   self:probeMechanics(dt)
-  self:checkOrbitsDone()
-  
-
-  --update ColorZones for alpha change purposes
-  self.colorZones = self.planet.zonasColor
 
 end
 
-function PlayState:render()
+function PlayPruebaState:render()
   cameraMain:draw(
     function()
+     self:drawTableEntities(probes)
       self.planet:render()
-      self:drawTableEntities(probes)
       if probeSelected > 0 then
         self:gravityBeam()
+        self.debug = "Al menos una probe seleccionada"
+      else
+        self.debug = "Nada"
       end
     end
-  ) 
-  printTitle(self.level, self.debug, self.instructionsOn)
+  )
 
-  if gameState == 'pause' then
-    love.graphics.setFont(gFonts['big'])
-    love.graphics.printf("PAUSE",
-      0, WINDOW_HEIGHT / 2, WINDOW_WIDTH, 'center')
-  end
+  printTitle( 1, self.debug, false)
+
+   if gameState == 'pause' then
+      love.graphics.setFont(gFonts['big'])
+      love.graphics.printf("PAUSE",
+        0, WINDOW_HEIGHT / 2, WINDOW_WIDTH, 'center')
+    end
+
 end
 
 --[[ launchProbes:
@@ -145,7 +135,7 @@ end
   -Por cada probe lanzada se anade su numero id a la tabla probesOrbiting
   -Si por alguna razon cualquier probe deja de existir, se lanza de nuevo la misma probe pasado el tiempo X
 ]]--
-function PlayState:launchProbes(dt)
+function PlayPruebaState:launchProbes(dt)
   self.probesOrbiting = {}
   if #probes == 0 and self.probeLanzar then --probes es Global en Main
     self.timeProbes = self.timeProbes + dt
@@ -180,11 +170,11 @@ end
   -Establece la posicion pop, para los circulos concentricos
   -La primera probe entra sola, las demas usando el parametro i
 ]]--
-function PlayState:manageLaunchProbes(first, dt, i)
+function PlayPruebaState:manageLaunchProbes(first, dt, i)
   local modRad = lume.random(50)
-  local uno = {self.probeX, self.probeY, lume.randomchoice({math.rad(300 - modRad), math.rad(270 + modRad)})}
-  local dos = {self.probeX, -self.probeY, lume.randomchoice({math.rad(300 + modRad), math.rad(90 - modRad)})}
-  local tres = {-self.probeX, self.probeY, lume.randomchoice({math.rad(360 - modRad), math.rad(0 + modRad)})}
+  local uno = {self.probeX, self.probeY, lume.randomchoice({math.rad(100 - modRad), math.rad(270 + modRad)})}
+  local dos = {self.probeX, -self.probeY, lume.randomchoice({math.rad(100 + modRad), math.rad(90 - modRad)})}
+  local tres = {-self.probeX, self.probeY, lume.randomchoice({math.rad(150 - modRad), math.rad(0 + modRad)})}
   local cuatro = {-self.probeX, -self.probeY, lume.randomchoice({math.rad(100 - modRad), math.rad(90 + modRad)})}
   local probeData = lume.randomchoice({uno,dos,tres,cuatro})
 
@@ -195,6 +185,7 @@ function PlayState:manageLaunchProbes(first, dt, i)
   probStr.name = probString
   probStr.popX = probStr.x
   probStr.popY = probStr.y
+  probStr.needPop = true
 
   if first then
     probStr.number = p
@@ -211,7 +202,7 @@ end
 --[[ drawTableEntities:
   Para rendear todas las entidades que hay en una tabla (probes, por ejemplo)
 ]]--
-function PlayState:drawTableEntities(table)
+function PlayPruebaState:drawTableEntities(table, dt)
   for i, entity in ipairs(table) do
     entity:render()
   end
@@ -225,15 +216,17 @@ end
     -Revisa si la probe esta muerta para eliminarla de la lista
     -Finalmente ejecuta el update de la probe
 ]]--
-function PlayState:probeMechanics(dt)
+function PlayPruebaState:probeMechanics(dt)
   for i, p in ipairs(probes) do        
-      p:influencedByGravityOf(self.planet)
-      p:checkDestroyProbe(self.planet)
-      p:checkLowHigh(self.planet)
+      GravitySystem.influencedByGravityOf(p, self.planet)
+      GravitySystem.predictedPosition(p, self.planet, self.predictionNumber, dt)
+      GravitySystem.checkDestroyElement(p, self.planet)
+      
+      --p:checkLowHigh(self.planet, self.planet.colorZones)
       if p.dead then
         table.remove(probes, i)
       end
-      p:update(dt)
+       p:update(dt)
   end
 end
 
@@ -242,79 +235,21 @@ end
     se puede buscar si una esta seleccionada en la tabla y usar solo esa, no hacer el for loop cada frame
   -Dibuja el gravity beam sobre la probe seleccionada
 ]]--
-function PlayState:gravityBeam()
+function PlayPruebaState:gravityBeam()
   if gameState == "play" then
     for i, p in ipairs(probes) do
-      --for j, pl in ipairs(planetas) do
-        if p.selected then
-          local anglePlanet =  math.atan2((p.pos.y - self.planet.pos.y), (p.pos.x - self.planet.pos.x))
-          local rDistRel = p.r + utils.randomInt(5, 15)
-          red, green, blue, alpha = utils.numberToColor(i, 150)
-          love.graphics.setColor(red - 50, green - 50, blue + 50, alpha)
-          love.graphics.polygon("fill", self.planet.x, self.planet.y, p.x + (math.sin(anglePlanet) * rDistRel), p.y - (math.cos(anglePlanet) * rDistRel), p.x - (math.sin(anglePlanet) * rDistRel), p.y + (math.cos(anglePlanet) * rDistRel))
-          love.graphics.arc("fill", p.pos.x, p.pos.y, rDistRel, anglePlanet + math.rad(90), anglePlanet - math.rad(90))
-          love.graphics.setColor(0,0,0,255)
-          love.graphics.line(self.planet.x, self.planet.y, p.x + (math.sin(anglePlanet) * rDistRel), p.y - (math.cos(anglePlanet) * rDistRel))
-          love.graphics.line(self.planet.x, self.planet.y, p.x - (math.sin(anglePlanet) * rDistRel), p.y + (math.cos(anglePlanet) * rDistRel))
-          love.graphics.arc("line","open", p.pos.x, p.pos.y, rDistRel, anglePlanet + math.rad(90), anglePlanet - math.rad(90))
-          love.graphics.setColor(255,255,255,255)
-        end
-      --end
-    end
-  end
-end
-
---[[ checkOrbitsDone
-  -For loop sobre las probes para ver si hay orbitas estables 
-  -Si hay orbita estable se coloca un true en la misma posicion de la probe en la tabla orbitsNeededToWin, 
-    creada segun el numero de probes de este nivel.
-  -Se usa la propiedad intersect de la probe, que es cuando ha pasado 2 veces por el mismo punto de la orbita
-    sin salirse de la misma
-  -Si la probe se sale de la orbita, se llena esta posicion con false.
-]]
-function PlayState:checkOrbitsDone()  
-  for i, p in ipairs(probes) do
-    if p.intersect then
-      self.orbitsNeededToWin[i] = true
-    elseif not p.intersect then
-      self.orbitsNeededToWin[i] = false
-    end
-  end
-end
-
---[[ checkWin:
-  -Chequea si se lograron todas las orbitas de un nivel. 
-  -Chequea si se completaron todos los niveles del juego.
-  - Si solo se completo un nivel, sube al siguiente nivel y resetean 
-    initLevel, orbitsNeededToWin, zonasColor y probes, y deselecciona la probe seleccionada.
-]]
-function PlayState:checkWin() 
-  if #self.orbitsNeededToWin > 0 then
-    if utils.tableCount(self.orbitsNeededToWin, true) == #self.orbitsNeededToWin then
-      self.level = self.level + 1
-      if self.level <= self.lastLevel then
-        self.probesByLevelMaker = LevelMaker.createLevel(self.level)[1]
-        --level variables
-        self.orbitsNeededToWin = {}
-        for i = 1, self.probesByLevelMaker do
-          table.insert(self.orbitsNeededToWin, false)
-        end
-        --orbits area
-        self.colorZones = self.planet.zonasColor
-
-        probes = {}
-        probeSelected = 0
-        
-        gSounds['select']:play()
-        
-        gStateMachine:change('level', {
-            level = self.level,
-            firstLevel = self.firstLevel
-        })
-      else
-        gSounds['select']:play()
-      
-        gStateMachine:change('win')
+      if p.selected then
+        local anglePlanet =  math.atan2((p.pos.y - self.planet.pos.y), (p.pos.x - self.planet.pos.x))
+        local rDistRel = p.r + utils.randomInt(5, 15)
+        red, green, blue, alpha = utils.numberToColor(i, 150)
+        love.graphics.setColor(red - 50, green - 50, blue + 50, alpha)
+        love.graphics.polygon("fill", self.planet.x, self.planet.y, p.x + (math.sin(anglePlanet) * rDistRel), p.y - (math.cos(anglePlanet) * rDistRel), p.x - (math.sin(anglePlanet) * rDistRel), p.y + (math.cos(anglePlanet) * rDistRel))
+        love.graphics.arc("fill", p.pos.x, p.pos.y, rDistRel, anglePlanet + math.rad(90), anglePlanet - math.rad(90))
+        love.graphics.setColor(0,0,0,255)
+        love.graphics.line(self.planet.x, self.planet.y, p.x + (math.sin(anglePlanet) * rDistRel), p.y - (math.cos(anglePlanet) * rDistRel))
+        love.graphics.line(self.planet.x, self.planet.y, p.x - (math.sin(anglePlanet) * rDistRel), p.y + (math.cos(anglePlanet) * rDistRel))
+        love.graphics.arc("line","open", p.pos.x, p.pos.y, rDistRel, anglePlanet + math.rad(90), anglePlanet - math.rad(90))
+        love.graphics.setColor(255,255,255,255)
       end
     end
   end

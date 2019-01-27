@@ -55,17 +55,7 @@ function StartState:init()
     gSounds['musicIntro']:play()
     gSounds['musicIntro']:setLooping(true)
 
-    --levelInit
     self.levelInit = INITIAL_LEVEL
-    self.lastLevel = TOTAL_LEVELS
-    self.planet = Planet(0, 0, 20, 300000, 380)
-    self.probesByLevelMaker = LevelMaker.createLevel(self.levelInit)[1]
-    self.orbitsNeededToWin = {}
-    for i = 1, self.probesByLevelMaker do
-      table.insert(self.orbitsNeededToWin, false)
-    end
-    self.colorZones = ColorZones(self.planet, self.probesByLevelMaker, self.orbitsNeededToWin)
-    self.firstLevel = true
 
     --camera
     cameraMain:lookAt(love.graphics.getWidth()/2,love.graphics.getHeight()/2)
@@ -79,15 +69,11 @@ function StartState:update(dt)
         self.instructionsOn = not self.instructionsOn
     elseif love.keyboard.wasPressed('space') then 
         gSounds['select']:play()
-        gStateMachine:change('serve', {
-            levelText = 'Launching probes',
+        gSounds['musicIntro']:stop()
+        --gStateMachine:change('level', {
+        gStateMachine:change('playPrueba', {
             level = self.levelInit,
-            lastLevel = self.lastLevel,
-            planet = self.planet,
-            probesByLevelMaker = self.probesByLevelMaker,
-            orbitsNeededToWin = self.orbitsNeededToWin,
-            colorZones = self.colorZones,
-            firstLevel = self.firstLevel
+            firstLevel = true,
         })
     elseif love.keyboard.wasPressed('escape') then -- we no longer have this globally, so include here
         love.event.quit()
@@ -122,8 +108,8 @@ function StartState:drawStartLogo()
     for y=1, #self.map do
         for x=1, #self.map[y] do
             if self.map[y][x] == 1 then
-                love.graphics.rectangle("fill", x * 37, y * 37
-                    , 30 + self.a, 30 + self.a)
+                love.graphics.rectangle("fill", x * 35, y * 35
+                    , 28 + self.a, 28 + self.a)
             end
         end
     end
@@ -138,7 +124,7 @@ function StartState:drawStartText()  --tratar de tomar los textos del archivo te
         love.graphics.print("Press \"i\" to read the instructions", width/2 - self.a, height/2 + fontHeight)
     else
         love.graphics.setFont(gFonts['small'])
-        love.graphics.printf("-Try to take each probe to the orbit of the correct color using only the thrusters to accelerate or decelerate it\n\n\nKeys:\n\n-Press 'Space' to start the game / launch the probes / pause the game\n\n-Press up or down arrows to accelerate or decelerate the probe\n\n-Press 'P' to select and cicle between the probes\n\n-Press 'X' when a probe is selected to destroy it and create a new one\n\n-Press 'R' to reset all the probes\n\n-Press 'Escape' to exit the game\n\n-Press 'I' to enter / exit the instructions", width/2, 60, 600, 'left')
+        love.graphics.printf("-Try to take each probe to the orbit of the correct color using only the thrusters to accelerate or decelerate it\n\n\nKeys:\n\n-Press 'Space' to start the game / launch the probes / pause the game\n\n-Press up or down arrows to accelerate or decelerate the probe\n\n-Press 'P' to select and cicle between the probes\n\n-Press 'X' when a probe is selected to destroy it and create a new one\n\n-Press 'R' to reset all the probes\n\n-Press 'Escape' to exit the game\n\n-Press 'I' to enter / exit the instructions", width/2, 95, 600, 'left')
             --Use 'A' and 'Z' to zoom in and out\n\n
             --Press 'F' to follow the selected probe\n\n
     end

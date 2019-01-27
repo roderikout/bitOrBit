@@ -20,7 +20,8 @@ function VictoryState:enter(params)
     self.planet = params.planet
     self.probesByLevelMaker = params.probesByLevelMaker
     self.orbitsNeededToWin = params.orbitsNeededToWin
-    self.colorZones = params.colorZones
+
+    self.colorZones = self.planet.colorZones
 end
 
 function VictoryState:update(dt)
@@ -32,8 +33,7 @@ function VictoryState:update(dt)
             lastLevel = self.lastLevel,
             planet = self.planet,
             probesByLevelMaker = self.probesByLevelMaker,
-            orbitsNeededToWin = self.orbitsNeededToWin,
-            colorZones = self.colorZones
+            orbitsNeededToWin = self.orbitsNeededToWin
         })
     elseif love.keyboard.wasPressed('escape') then -- we no longer have this globally, so include here
         gStateMachine:change('start')
